@@ -18,6 +18,7 @@
 ################   User Settings   ################
 # Ignore the profile picture
 profilePicture = "im.vsco.co/1/5596ee97bbcb95169892/575bb69d8c303b81438b456d/vsco_061016.jpg?w=100&amp;h=100&amp;fit=crop&amp;dpr=2"
+desiredWidth = "1200" # VSCO serves uses 300px width on the user's page
 
 ################   Imports   ################
 from bs4 import BeautifulSoup # Module to sort through the html
@@ -52,4 +53,5 @@ for fileName in files:
             imgTag = line[startIndex:endIndex] # Cut the front of the line
 
             if imgTag != profilePicture: # If not the profile picture
-                print imgTag # Print
+                largeImg = imgTag.replace("300", desiredWidth) # Change to 1200 resolution
+                print largeImg # Print
