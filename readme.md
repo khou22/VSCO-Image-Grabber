@@ -10,3 +10,4 @@ Prints the URLs of all the VSCO images found in the files
 
 # Usage:
 python vscoImageGrabber.py
+* Requires downloading all pages of VSCO profile
