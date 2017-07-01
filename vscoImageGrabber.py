@@ -42,6 +42,7 @@ images = [] # URLs to all images
 tagID = "<img alt=\"\" src=\"//"
 endTagID = "\" width=\""
 
+print "const vscoImages = ["; # Open array
 # Cycle through each file
 for fileName in files:
     file = open(fileName, "r") # Open the file
@@ -54,4 +55,5 @@ for fileName in files:
 
             if imgTag != profilePicture: # If not the profile picture
                 largeImg = imgTag.replace("300", desiredWidth) # Change to 1200 resolution
-                print largeImg # Print
+                print "  \"" + largeImg + "\"," # Print
+print "];"; # Open array
