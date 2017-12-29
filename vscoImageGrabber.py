@@ -38,46 +38,47 @@ from datetime import datetime # For timestamps
 ################   Find all VSCO pages   ################
 files = [] # Valid files
 os.chdir("./vscoPages/") # Search directory
-for file in glob.glob("*.webarchive"): # Filter
+for file in glob.glob("*.html"): # Filter
     files.append(file) # Add file
 
 ################   Get image urls from webarchive files   ################
 images = [] # URLs to all images
 
 # Tag IDs
-tagID = "<img alt=\"\" src=\"//"
+tagID = "<img class=\"\" src=\"//"
 endTagID = "\" width=\""
 
 # Cycle through each file
 for fileName in files:
+    print("Opening " + fileName)
     file = open(fileName, "r") # Open the file
 
-    for line in file.readlines(): # Cycle through each line of the file
-        if tagID in line: # If it contains a link
-            startIndex = line.index(tagID) + len(tagID) # Get position of img
-            endIndex = line.index(endTagID) # Get end position of link
-            imgTag = line[startIndex:endIndex] # Cut the front of the line
+    soup = BeautifulSoup(file.read(), "lxml") # Open web scraping
 
-            if imgTag not in profilePictures: # If not the profile picture
-                if imgTag not in images: # Make sure don't add duplicates
-                    largeImg = imgTag.replace("300", desiredWidth) # Change to 1200 resolution
-                    images.append(largeImg) # Add to master array
+    imageTags = soup.select('img[class+="Image Image--loaded "]') # Find partial class match
+    for image in imageTags:
+        imageLink = image.get("src") # Get the image source URL
+
+        if imageLink not in profilePictures: # If not the profile picture
+            largeImg = imageLink.replace("w=322", "w=" + desiredWidth) # Change to 1200 resolution
+            if largeImg not in images: # Make sure don't add duplicates
+                images.append(largeImg) # Add to master array
     
     file.close()
 
 ################   Output to JS File   ################
-print "{0} images found".format(images.count)
+print "{0} images found".format(len(images))
 try:
     with io.FileIO(outputFileName, 'w') as outputFile: # Writing file and creating file if it doesn't exist
-        print "// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print "const vscoImages = ["
+        # print "// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # print "const vscoImages = ["
         outputFile.write("// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')) # Timestamp
         outputFile.write("const vscoImages = [") # Open array
         for image in images:
             outputFile.write("  \"" + image + "\",") # Print
-            print "  \"" + image + "\","
+            # print "  \"" + image + "\","
         outputFile.write("];") # Open array
-        print "];"
+        # print "];"
         outputFile.close()
 except IOError as (errno, strerror):
     print "I/O error({0}): {1}".format(errno, strerror)
