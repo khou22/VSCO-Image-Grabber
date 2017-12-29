@@ -66,18 +66,22 @@ for fileName in files:
     
     file.close()
 
+# Reset directory level
+os.chdir("..") # Back to root directory
+
 ################   Output to JS File   ################
 print "{0} images found".format(len(images))
 try:
     with io.FileIO(outputFileName, 'w') as outputFile: # Writing file and creating file if it doesn't exist
         # print "// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         # print "const vscoImages = ["
-        outputFile.write("// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')) # Timestamp
-        outputFile.write("const vscoImages = [") # Open array
+        outputFile.write("// Number of Images: " + str(len(images)) + "\n") # Meta data
+        outputFile.write("// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n") # Timestamp
+        outputFile.write("const vscoImages = [\n") # Open array
         for image in images:
-            outputFile.write("  \"" + image + "\",") # Print
+            outputFile.write("  \"" + image + "\",\n") # Print
             # print "  \"" + image + "\","
-        outputFile.write("];") # Open array
+        outputFile.write("];\n") # Open array
         # print "];"
         outputFile.close()
 except IOError as (errno, strerror):
