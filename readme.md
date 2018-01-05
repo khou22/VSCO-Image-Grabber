@@ -9,9 +9,7 @@ Store those .webarchive files in a subdirectory named 'vscoPages'
 Prints the URLs of all the VSCO images found in the files
 
 # Selenium Web Scrape
-``` bash
-rm vscoDataSelenium-* # Remove old data files
-```
+Because of complications with load times after clicking to the next image, the while loop will only terminate if there is an old file that contains the ID of an image the script is currently scraping. Therefore, it is imperitive that you keep `vscoDataSelenium-0000000000.js` in the directory to gaurentee a termination.
 
 # Usage:
 ``` bash

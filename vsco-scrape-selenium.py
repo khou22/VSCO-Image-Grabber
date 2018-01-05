@@ -59,42 +59,46 @@ while (hasNextImage):
         hasNextImage = False # End while loop
         break # Break out of this iteration
 
-    # Get the image
-    mainBody = driver.find_element_by_class_name("container")
-    image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
-
-    # Expose meta data
-    driver.find_element_by_class_name("DetailViewMetaCollapsible-button").click()
-
-    # Get meta data container
-    metaContainer = driver.find_element_by_class_name("DetailViewMetaCollapsible-meta-container")
-
-    # Get just date
-    # date = metaContainer.find_element_by_xpath(".//time/span").text
-
-    # Get date and time and parse
-    parsedTime = metaContainer.find_element_by_xpath(".//time").text
-    parsedDate = datetime.strptime(parsedTime, '%B %d, %Y %I:%M%p') # Example: July 03, 2015 2:19pm
-    isoDate = parsedDate.isoformat()
-
-    # Log to master data set
-    data.append({ "id": imageID, "image": image, "date": isoDate })
-
+    # Get the next button
     nextImageButton = driver.find_element_by_class_name('MouseAndKeyboardPagination-NextButton')
+
     if (nextImageButton.is_enabled()):
-        print "Going to next image"
+        # Get the image
+        mainBody = driver.find_element_by_class_name("container")
+        image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
+
+        # Expose meta data
+        driver.find_element_by_class_name("DetailViewMetaCollapsible-button").click()
+
+        # Get meta data container
+        metaContainer = driver.find_element_by_class_name("DetailViewMetaCollapsible-meta-container")
+
+        # Get just date
+        # date = metaContainer.find_element_by_xpath(".//time/span").text
+
+        # Get date and time and parse
+        parsedTime = metaContainer.find_element_by_xpath(".//time").text
+        parsedDate = datetime.strptime(parsedTime, '%B %d, %Y %I:%M%p') # Example: July 03, 2015 2:19pm
+        isoDate = parsedDate.isoformat()
+
+        # Log to master data set
+        data.append({ "id": imageID, "image": image, "date": isoDate })
+
+        # print "Going to next image"
         nextImageButton.click() # Go to next image if exists
-    else:
-        print "No more images"
-        # If no next image, terminate
-        hasNextImage = False
+        # time.sleep(0.5) # To allow page loads
+
+    # else: # Uncomment if only doing a small number of images
+    #     print "No more images"
+    #     # If no next image, terminate
+    #     hasNextImage = False
 
 driver.close()
 print "{0} new image(s) found".format(len(data))
 
 ################   Output to JS File   ################
 outputFileName = outputFileName.replace("[date]", str(calendar.timegm(time.gmtime()))) # Add epoche timestamp
-print "Writing to file" + outputFileName
+print "Writing to file " + outputFileName
 try:
     with io.FileIO(outputFileName, 'w') as outputFile: # Writing file and creating file if it doesn't exist
         outputFile.write("// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n") # Timestamp
