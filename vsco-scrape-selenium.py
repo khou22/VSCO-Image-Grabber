@@ -1,5 +1,18 @@
+# Selenium
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+
+# Date parsing
+from datetime import datetime
+from dateutil.parser import parse
+import calendar
+import time
+
+# Other
+import io
+
+# Options
+outputFileName = "vscoDataSelenium-[date].js"
 
 # Incognito Chrome
 option = webdriver.ChromeOptions()
@@ -9,29 +22,69 @@ option.add_argument("--incognito")
 driver = webdriver.Chrome(chrome_options=option)
 
 # Initial URL (first image)
-driver.get("http://vsco.co/khou22/media/5a49a6cc8fb562190c40cab8")
+# driver.get("http://vsco.co/khou22/media/5a49a6cc8fb562190c40cab8")
+driver.get("http://vsco.co/khou22/media/5596fc5328331ed9388b4569") # Last image
+# driver.get("http://vsco.co/khou22/media/55abea862b331e0f258b456c") # Second to last image
 
-# Get the image
-mainBody = driver.find_element_by_class_name("container")
-image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
-print image
+# States
+hasNextImage = True
 
-# Expose meta data
-driver.find_element_by_class_name("DetailViewMetaCollapsible-button").click()
+# Master data
+data = []
 
-# Get meta data container
-metaContainer = driver.find_element_by_class_name("DetailViewMetaCollapsible-meta-container")
+# Get the latest data set if possible
 
-# Get just date
-# date = metaContainer.find_element_by_xpath(".//time/span").text
 
-# Get date and time
-time = metaContainer.find_element_by_xpath(".//time").text
+while (hasNextImage):
+    # Get the image
+    mainBody = driver.find_element_by_class_name("container")
+    image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
 
-# print date
-print time
+    # Expose meta data
+    driver.find_element_by_class_name("DetailViewMetaCollapsible-button").click()
 
-nextImageButton = driver.find_element_by_class_name('MouseAndKeyboardPagination-NextButton')
-nextImageButton.click() # Go to next image
+    # Get meta data container
+    metaContainer = driver.find_element_by_class_name("DetailViewMetaCollapsible-meta-container")
+
+    # Get just date
+    # date = metaContainer.find_element_by_xpath(".//time/span").text
+
+    # Get date and time and parse
+    parsedTime = metaContainer.find_element_by_xpath(".//time").text
+    parsedDate = datetime.strptime(parsedTime, '%B %d, %Y %I:%M%p') # Example: July 03, 2015 2:19pm
+    isoDate = parsedDate.isoformat()
+
+    # Log to master data set
+    data.append({ "image": image, "date": isoDate })
+
+    nextImageButton = driver.find_element_by_class_name('MouseAndKeyboardPagination-NextButton')
+    if (nextImageButton.is_enabled()):
+        print "Going to next image"
+        nextImageButton.click() # Go to next image if exists
+    else:
+        print "No more images"
+        # If no next image, terminate
+        hasNextImage = False
 
 driver.close()
+
+################   Output to JS File   ################
+print "{0} albums found".format(len(data))
+outputFileName = outputFileName.replace("[date]", str(calendar.timegm(time.gmtime()))) # Add timestamp
+print "Writing to file" + outputFileName
+try:
+    with io.FileIO(outputFileName, 'w') as outputFile: # Writing file and creating file if it doesn't exist
+        outputFile.write("// Last updated: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n") # Timestamp
+        outputFile.write("const vscoData = [\n") # Open array
+
+        # Cycle through data
+        for image in data:
+            outputFile.write("  {\n")
+            outputFile.write("    \"image\": \"" + image["image"] + "\",\n")
+            outputFile.write("    \"date\": \"" + image["date"] + "\"\n")
+            outputFile.write("  },\n")
+
+        outputFile.write("];\n") # Close array
+        outputFile.close()
+except IOError as (errno, strerror):
+    print "I/O error({0}): {1}".format(errno, strerror)
