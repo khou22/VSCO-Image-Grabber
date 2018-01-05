@@ -8,6 +8,11 @@ To get .webarchive's, go to each page of the user's VSCO and save the page as a 
 Store those .webarchive files in a subdirectory named 'vscoPages'
 Prints the URLs of all the VSCO images found in the files
 
+# Selenium Web Scrape
+``` bash
+rm vscoDataSelenium-* # Remove old data files
+```
+
 # Usage:
 ``` bash
 $ python vscoImageGrabber.py

@@ -9,6 +9,7 @@ import calendar
 import time
 
 # Other
+import glob # Grabbing files with extensions
 import io
 
 # Options
@@ -22,8 +23,10 @@ option.add_argument("--incognito")
 driver = webdriver.Chrome(chrome_options=option)
 
 # Initial URL (first image)
-# driver.get("http://vsco.co/khou22/media/5a49a6cc8fb562190c40cab8")
-driver.get("http://vsco.co/khou22/media/5596fc5328331ed9388b4569") # Last image
+driver.get("http://vsco.co/khou22/media/5a49a6cc8fb562190c40cab8") # Latest image
+
+# Testing
+# driver.get("http://vsco.co/khou22/media/5596fc5328331ed9388b4569") # Last image
 # driver.get("http://vsco.co/khou22/media/55abea862b331e0f258b456c") # Second to last image
 
 # States
@@ -33,9 +36,29 @@ hasNextImage = True
 data = []
 
 # Get the latest data set if possible
+latestFile = None
+for currentFile in glob.glob("vscoDataSelenium*.js"): # Filter
+    if (latestFile == None):
+        latestFile = currentFile
+    if (latestFile <= currentFile): # Newer data
+        latestFile = currentFile
 
+# Parse in the contents of the file as a long string
+latestData = ""
+if (latestFile != None):
+    print "Latest test file is: " + latestFile
+    latestData = file(latestFile).read()
 
+################   Webscrape VSCO   ################
 while (hasNextImage):
+    # Get the image ID from the URL
+    imageID = driver.current_url.split('/')[-1] # Gets the ID of the image
+
+    # If this image is already in the old data set, discontinue webscrape
+    if imageID in latestData:
+        hasNextImage = False # End while loop
+        break # Break out of this iteration
+
     # Get the image
     mainBody = driver.find_element_by_class_name("container")
     image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
@@ -55,7 +78,7 @@ while (hasNextImage):
     isoDate = parsedDate.isoformat()
 
     # Log to master data set
-    data.append({ "image": image, "date": isoDate })
+    data.append({ "id": imageID, "image": image, "date": isoDate })
 
     nextImageButton = driver.find_element_by_class_name('MouseAndKeyboardPagination-NextButton')
     if (nextImageButton.is_enabled()):
@@ -67,10 +90,10 @@ while (hasNextImage):
         hasNextImage = False
 
 driver.close()
+print "{0} new image(s) found".format(len(data))
 
 ################   Output to JS File   ################
-print "{0} albums found".format(len(data))
-outputFileName = outputFileName.replace("[date]", str(calendar.timegm(time.gmtime()))) # Add timestamp
+outputFileName = outputFileName.replace("[date]", str(calendar.timegm(time.gmtime()))) # Add epoche timestamp
 print "Writing to file" + outputFileName
 try:
     with io.FileIO(outputFileName, 'w') as outputFile: # Writing file and creating file if it doesn't exist
@@ -80,11 +103,20 @@ try:
         # Cycle through data
         for image in data:
             outputFile.write("  {\n")
+            outputFile.write("    \"id\": \"" + image["id"] + "\",\n")
             outputFile.write("    \"image\": \"" + image["image"] + "\",\n")
             outputFile.write("    \"date\": \"" + image["date"] + "\"\n")
             outputFile.write("  },\n")
 
-        outputFile.write("];\n") # Close array
+        # Append the data from the latest file
+        if latestFile is not None:
+            fp = open(latestFile)
+            for i, line in enumerate(fp):
+                if (i >= 2): # Start appending from the third line
+                    outputFile.write(line) # Append
+            fp.close()
+        else:
+            outputFile.write("];\n") # Close array
         outputFile.close()
 except IOError as (errno, strerror):
     print "I/O error({0}): {1}".format(errno, strerror)
