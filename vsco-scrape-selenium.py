@@ -20,10 +20,10 @@ option = webdriver.ChromeOptions()
 option.add_argument("--incognito")
 
 # Use the Chrome driver
-driver = webdriver.Chrome(chrome_options=option)
+driver = webdriver.Chrome("/usr/local/bin/chromedriver/chromedriver", chrome_options=option)
 
 # Initial URL (first image)
-driver.get("http://vsco.co/khou22/media/5a49a6cc8fb562190c40cab8") # Latest image
+driver.get("https://vsco.co/khou22/media/5bfd93f06f37f564228b88ad") # Latest image
 
 # Testing
 # driver.get("http://vsco.co/khou22/media/5596fc5328331ed9388b4569") # Last image
@@ -64,7 +64,7 @@ while (hasNextImage):
 
     if (nextImageButton.is_enabled()):
         # Get the image
-        mainBody = driver.find_element_by_class_name("container")
+        mainBody = driver.find_element_by_class_name("MediaBgColorWrapper--withRatio")
         image = mainBody.find_element_by_xpath(".//img").get_attribute("src")
 
         # Expose meta data
