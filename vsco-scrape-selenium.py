@@ -23,7 +23,7 @@ option.add_argument("--incognito")
 driver = webdriver.Chrome("/usr/local/bin/chromedriver/chromedriver", chrome_options=option)
 
 # Initial URL (first image)
-driver.get("https://vsco.co/khou22/media/5bfd93f06f37f564228b88ad") # Latest image
+driver.get("https://vsco.co/khou22/media/5c404ce942976801064ed4ac") # Latest image
 
 # Testing
 # driver.get("http://vsco.co/khou22/media/5596fc5328331ed9388b4569") # Last image
